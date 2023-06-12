@@ -22,7 +22,7 @@ setkey(coords,Plot_ID,year)
 dataX <- merge(dataX,coords,by=c("Plot_ID","year")) #add new coordinates to the data
 
 ###read and process weather inputs
-climateData <- data.table(read.csv('myData/prebas_sweden_may23_monthly_weather.csv'))
+climateData <- data.table(read.csv('myData/monthly_weather.csv'))
 coords2 <- data.table(read.csv('myData/coords_climid.csv'))
 # setkey(data_climate2, climID)
 # setkey(coords2, climID)
