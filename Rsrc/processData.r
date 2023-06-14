@@ -280,7 +280,6 @@ obsWr[variable=="WrDecid",layer:=5]
 obsBA[,groupID:=2]; obsBA[,variableID:=3]
 obsBA <- obsBA[value!=0]
 obsBA[,layerID:=as.numeric(as.factor(layer)),by=Plot_ID]
-
 obsN[,groupID:=2]; obsN[,variableID:=2]
 obsN <- obsN[value!=0]
 obsN[,layerID:=as.numeric(as.factor(layer)),by=Plot_ID]
@@ -299,6 +298,14 @@ obsWf[,layerID:=as.numeric(as.factor(layer)),by=Plot_ID]
 obsWr[,groupID:=4]; obsWr[,variableID:=2]
 obsWr <- obsWr[value!=0]
 obsWr[,layerID:=as.numeric(as.factor(layer)),by=Plot_ID]
+
+obsBA$var_name <- "BA"
+obsN$var_name <- "N"
+obsV$var_name <- "V"
+obsD$var_name <- "D"
+obsWf$var_name <- "Wf"
+obsWr$var_name <- "Wr"
+obsWs$var_name <- "Ws"
 
 obsAll <- rbind(obsBA,obsD);obsAll <- rbind(obsAll,obsD);obsAll <- rbind(obsAll,obsN)
 obsAll <- rbind(obsAll,obsV);obsAll <- rbind(obsAll,obsWs);obsAll <- rbind(obsAll,obsWf);obsAll <- rbind(obsAll,obsWr)
@@ -334,13 +341,15 @@ species_list <- split(data_species,data_species$Plot_ID)
 indXsite <- which(names(data_site) %in% c("latitude","altitude","soil_class","asw_i","asw_min","asw_max","from","to"))
 indXspecies <- which(names(data_species) %in% c("species", "planted", "fertility", "stems_n", "biom_stem", "biom_root", "biom_foliage"))
 
+setnames(obsAll,"value","obs")
+
 save(obsAll,site_list,species_list,file="myData/dataInputs.rdata")
 
 ##filtering out the sites where the number of layers were inconsitent between the first and the second measurement
 nLayersInit <- d_species[,length(which(stems_n>0)),by=Plot_ID] ###number of layers (species) in each plot 
 setnames(nLayersInit,"Plot_ID","Plot_Name")
 nLayersInit <- merge(nLayersInit,selData[dataUse=="init",.(Plot_Name,Plot_ID)])
-nLayersObs <- obsAll[variableID==2 & groupID==2,length(value),by=Plot_ID]
+nLayersObs <- obsAll[variableID==2 & groupID==2,length(obs),by=Plot_ID]
 setnames(nLayersInit,"V1","nLayersInit")
 setnames(nLayersObs,"V1","nLayersObs")
 nLayers <- merge(nLayersInit,nLayersObs,by="Plot_ID")
@@ -385,13 +394,13 @@ dataSel <- unique(obsAll[,.(groupID,variableID)])
 plotX=list()
 for (i in 1:nrow(dataSel)){
   plotX[[i]] <- ggplot(data= obsAll[groupID==dataSel$groupID[i] & variableID==dataSel$variableID[i]]) + 
-                  geom_point(aes(x=sims,y=value,col=variable)) + geom_abline()
+                  geom_point(aes(x=sims,y=obs,col=variable)) + geom_abline()
 }
 
 obsAll
 
-obsAll[variable=="BAspruce",plot(sims,value)]
-obsAll[variable=="BApine",hist(sims-value)]
+obsAll[variable=="BAspruce",plot(sims,obs)]
+obsAll[variable=="BApine",hist(sims-obs)]
 
 varX=3
 groupX=2

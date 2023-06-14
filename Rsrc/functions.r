@@ -3,7 +3,7 @@
 # Heavy tailed noraml distribution
 Sivia_log<-function(diff,sd){
   # sd[which(sd<=0)]<-11e-6e-6
-  diff[which(abs(diff)<=1e-6)]<-1e-6
+  diff[which(abs(diff)<=1e-6)]<-1e-4
   R2<-(diff/sd)^2
   prob<-1/(sd*(pi*2)^0.5)*(1-exp(-R2/2))/R2
   log(prob)
@@ -56,27 +56,24 @@ multi_r3pg <- function(site, species, climate, obsData,parameters,outType="ll"){
                  check_input = T,
                  df_out = F)
   
-  dataX <- obsData[,.(simMonth,layer,groupID,variableID,value)]
+  dataX <- obsData[,.(simMonth,layer,groupID,variableID,obs,var_name)]
   #remove NAs
   naObs <- which(is.na(as.numeric(dataX$obs)))
   if(length(naObs>1)) dataX <- dataX[-naObs]
   dataX$sims <- out[as.matrix(dataX[,1:4])]
   
-  !!!!!to check (start)
-  ll_stem <- calc_ll(dataX,"stems_n",pErr)
-  ll_ba <- calc_ll(dataX,"basal_area",pErr)
-  ll_v <- calc_ll(dataX,"volume",pErr)
-  ll_d <- calc_ll(dataX,"dbh",pErr)
-  ll_h <- calc_ll(dataX,"height",pErr)
-  ll_Wstem <- calc_ll(dataX,"biom_stem",pErr)
-  ll_Wroot <- calc_ll(dataX,"biom_root",pErr)
-  ll_Wfol <- calc_ll(dataX,"biom_foliage",pErr)
+  ll_stem <- calc_ll(dataX,"N",pErr)
+  ll_ba <- calc_ll(dataX,"BA",pErr)
+  ll_v <- calc_ll(dataX,"V",pErr)
+  ll_d <- calc_ll(dataX,"D",pErr)
+  ll_Wstem <- calc_ll(dataX,"Ws",pErr)
+  ll_Wroot <- calc_ll(dataX,"Wr",pErr)
+  ll_Wfol <- calc_ll(dataX,"Wf",pErr)
   
-  ll <- ll_stem + ll_ba + ll_v + ll_d + ll_h + ll_Wstem + ll_Wroot + ll_Wfol
+  ll <- ll_stem + ll_ba + ll_v + ll_d + ll_Wstem + ll_Wroot + ll_Wfol
   if(outType=="ll") return(ll)
   if(outType=="modOut") return(out)
   if(outType=="datX") return(dataX)
-  !!!!!to check (end) 
 }
 
 
