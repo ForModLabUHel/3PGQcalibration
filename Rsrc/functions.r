@@ -40,7 +40,7 @@ calc_ll <- function(dataX,varNameX,pErr){
 #' @export
 #'
 #' @examples
-multi_r3pg <- function(site, species, thinning,climate, obsData,parameters,outType="ll"){
+multi_r3pg <- function(site, species, climate, obsData,parameters,outType="ll"){
   #' @description simulate the n runs for a given site with the drawn parameter combination
   
   
@@ -48,17 +48,21 @@ multi_r3pg <- function(site, species, thinning,climate, obsData,parameters,outTy
   #'   #' @description function to run one site and return required output on standing biomass
   #'   #' @param par_df a data.frame of parameters
   
+  species <- species[which(stems_n>0)]
   out <- run_3PG(site = site, species = species, climate = climate,
-                 thinning = thinning, parameters = parameters,
-                 settings=settings_3pg, check_input = TRUE,
+                 parameters = parameters,
+                 settings= list(light_model = 2, transp_model = 2, phys_model = 2,
+                                height_model = 1, correct_bias = 0, calculate_d13c = 0),
+                 check_input = T,
                  df_out = F)
   
-  dataX <- obsData
+  dataX <- obsData[,.(simMonth,layer,groupID,variableID,value)]
   #remove NAs
   naObs <- which(is.na(as.numeric(dataX$obs)))
   if(length(naObs>1)) dataX <- dataX[-naObs]
-  dataX$sims <- out[as.matrix(dataX[,3:6])]
+  dataX$sims <- out[as.matrix(dataX[,1:4])]
   
+  !!!!!to check (start)
   ll_stem <- calc_ll(dataX,"stems_n",pErr)
   ll_ba <- calc_ll(dataX,"basal_area",pErr)
   ll_v <- calc_ll(dataX,"volume",pErr)
@@ -72,6 +76,7 @@ multi_r3pg <- function(site, species, thinning,climate, obsData,parameters,outTy
   if(outType=="ll") return(ll)
   if(outType=="modOut") return(out)
   if(outType=="datX") return(dataX)
+  !!!!!to check (end) 
 }
 
 
@@ -82,10 +87,12 @@ logLike <- function(pX){
   parameters$`Pinus sylvestris`[pIds] <- pX
   ll <- numeric(nSites)
   ll <-mclapply(sites, function(i,ll){
+    climIDi <- site_list[[i]]$climID
     # print(i)
-    ll[i] <- multi_r3pg(allInputs$site[[i]],allInputs$species[[i]],
-                        allInputs$thinning[[i]],allInputs$climate[[i]],
-                        allInputs$obsData[[i]],parameters)
+    ll[i] <- multi_r3pg(site_list[[i]][,.(latitude,altitude,soil_class, asw_i,asw_min, asw_max, from,to)],
+                        species_list[[i]][,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)],
+                        climateData[climID==climIDi,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)],
+                        obsAll[Plot_ID==i],parameters)
   },ll=ll,mc.cores = nCores)
   loglike <- sum(unlist(ll))
   return(loglike)
