@@ -15,7 +15,6 @@ coords <- dataX[,.(Plot_ID,year,`Coordinate SWEREF 99 TM East. Distorted +-200-8
 setnames(coords,c("Plot_ID","year","long","lat"))
 temp <- coords[,3:4]
 temp <- SpatialPoints (temp, proj4string = CRS ('+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'))
-
 coords[,3:4] <- as.data.frame (spTransform(temp, CRS('+proj=longlat +datum=WGS84 +no_defs'))) ####convert
 setkey(dataX,Plot_ID,year)
 setkey(coords,Plot_ID,year)
@@ -36,6 +35,7 @@ length(unique(dataX$climID))
 selPlots <- dataX[,.SD[which(length(year)>1)],by=Plot_ID]$Plot_ID
 selData <- dataX[Plot_ID %in% selPlots]
 
+###here I'm defining which measurements are used to initialize the model and which are used for model calibration 
 ###this is a bit stupid and could be more elegant but works
 initVals <- selData[, .SD[which.min(year)], by = Plot_ID] ####it's the data of the 1st measurement for each plot that will be used to initialize the model
 obs <- selData[, .SD[which.max(year)], by = Plot_ID] ####it's the data of the 2nd measurement for each plot that will be used to test/calibrate the model
@@ -44,10 +44,10 @@ obs$dataUse="cal"
 selData <- rbind(initVals,obs)
 setkey(selData,Plot_ID,year)
 
-selData[, initYear:=.SD[which.min(year)], by = Plot_ID] ####it's the data of the 1st measurement for each plot that will be used to initialize the model
-selData[, simMonth:=(year-initYear)*12, by = Plot_ID] ####it's the data of the 1st measurement for each plot that will be used to initialize the model
+selData[, initYear:=.SD[which.min(year)], by = Plot_ID] ####add a column with the year of the first measurements by each plot
+selData[, simMonth:=(year-initYear)*12, by = Plot_ID] ####I calculate the simulation month from the initialization time
 
-
+#####preparing the inputs to 3PG model
 ##sites with 0 data
 site0 <- unique(selData$Plot_ID[which(selData$`BA/ha m2/ha all species`==0)])
 length(site0)
@@ -336,8 +336,8 @@ indXspecies <- which(names(data_species) %in% c("species", "planted", "fertility
 
 save(obsAll,site_list,species_list,file="myData/dataInputs.rdata")
 
-##
-nLayersInit <- d_species[,length(which(stems_n>0)),by=Plot_ID]
+##filtering out the sites where the number of layers were inconsitent between the first and the second measurement
+nLayersInit <- d_species[,length(which(stems_n>0)),by=Plot_ID] ###number of layers (species) in each plot 
 setnames(nLayersInit,"Plot_ID","Plot_Name")
 nLayersInit <- merge(nLayersInit,selData[dataUse=="init",.(Plot_Name,Plot_ID)])
 nLayersObs <- obsAll[variableID==2 & groupID==2,length(value),by=Plot_ID]
@@ -346,15 +346,15 @@ setnames(nLayersObs,"V1","nLayersObs")
 nLayers <- merge(nLayersInit,nLayersObs,by="Plot_ID")
 nLayers[,dNlayers:=nLayersInit-nLayersObs]
 hist(nLayers$dNlayers)
-
 plotToCheck <- nLayers[dNlayers!=0]$Plot_ID
 Plot_IDsel <- which(!Plot_ID %in% plotToCheck)
 my_out <- my_obs <- list()
 obsAll$sims <- -99999
+
 for(i in Plot_IDsel){
-  climIDi <- site_list[[i]]$climID
-  my_site <- site_list[[i]][,..indXsite]
-  my_species <- species_list[[i]][,..indXspecies]
+  climIDi <- site_list[[i]]$climID ##read the climID for a site i
+  my_site <- site_list[[i]][,..indXsite] ##take site i information
+  my_species <- species_list[[i]][,..indXspecies] ##take initial tree information for site i
   my_climate = climateData[climID==climIDi,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)]#all_climate
   #my_thinning = data_thinning[data_thinning$Plot_ID==i,3:8]
   my_parameters = all_parameters
@@ -378,6 +378,18 @@ for(i in Plot_IDsel){
 }
 
 obsAll[sims == -99999,sims:=NA]
+
+library(ggplot2)
+dataSel <- unique(obsAll[,.(groupID,variableID)])
+
+plotX=list()
+for (i in 1:nrow(dataSel)){
+  plotX[[i]] <- ggplot(data= obsAll[groupID==dataSel$groupID[i] & variableID==dataSel$variableID[i]]) + 
+                  geom_point(aes(x=sims,y=value,col=variable)) + geom_abline()
+}
+
+obsAll
+
 obsAll[variable=="BAspruce",plot(sims,value)]
 obsAll[variable=="BApine",hist(sims-value)]
 
