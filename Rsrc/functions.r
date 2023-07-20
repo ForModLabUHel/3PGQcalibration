@@ -40,7 +40,7 @@ calc_ll <- function(dataX,varNameX,pErr){
 #' @export
 #'
 #' @examples
-multi_r3pg <- function(site, species, climate, obsData,parameters,outType="ll"){
+multi_r3pg <- function(site, species, climate, obsData,parameters,pErr,outType="ll"){
   #' @description simulate the n runs for a given site with the drawn parameter combination
   
   
@@ -48,7 +48,7 @@ multi_r3pg <- function(site, species, climate, obsData,parameters,outType="ll"){
   #'   #' @description function to run one site and return required output on standing biomass
   #'   #' @param par_df a data.frame of parameters
   
-  species <- species[which(stems_n>0)]
+  # species <- species[which(stems_n>0)]
   out <- run_3PG(site = site, species = species, climate = climate,
                  parameters = parameters,
                  settings= list(light_model = 2, transp_model = 2, phys_model = 2,
@@ -62,13 +62,13 @@ multi_r3pg <- function(site, species, climate, obsData,parameters,outType="ll"){
   if(length(naObs>1)) dataX <- dataX[-naObs]
   dataX$sims <- out[as.matrix(dataX[,1:4])]
   
-  ll_stem <- calc_ll(dataX,"N",pErr)
-  ll_ba <- calc_ll(dataX,"BA",pErr)
-  ll_v <- calc_ll(dataX,"V",pErr)
-  ll_d <- calc_ll(dataX,"D",pErr)
-  ll_Wstem <- calc_ll(dataX,"Ws",pErr)
-  ll_Wroot <- calc_ll(dataX,"Wr",pErr)
-  ll_Wfol <- calc_ll(dataX,"Wf",pErr)
+  ll_stem <- calc_ll(dataX,"N",pErr[1:2])
+  ll_ba <- calc_ll(dataX,"BA",pErr[3:4])
+  ll_v <- calc_ll(dataX,"V",pErr[5:6])
+  ll_d <- calc_ll(dataX,"D",pErr[7:8])
+  ll_Wstem <- calc_ll(dataX,"Ws",pErr[9:10])
+  ll_Wroot <- calc_ll(dataX,"Wr",pErr[11:12])
+  ll_Wfol <- calc_ll(dataX,"Wf",pErr[13:14])
   
   ll <- ll_stem + ll_ba + ll_v + ll_d + ll_Wstem + ll_Wroot + ll_Wfol
   if(outType=="ll") return(ll)
@@ -81,15 +81,21 @@ multi_r3pg <- function(site, species, climate, obsData,parameters,outType="ll"){
 logLike <- function(pX){
   
   # print("here")
-  parameters$`Pinus sylvestris`[pIds] <- pX
+  parameters$`Pinus sylvestris`[pIds] <- pX[1:length(pIds)]
+  parameters$`Picea abies`[pIds] <- pX[(length(pIds)+1):(length(pIds)*2)]
+  parameters$`Pinus contorta`[pIds] <- pX[(length(pIds)*2+1):(length(pIds)*3)]
+  parameters$`Betula alba`[pIds] <- pX[(length(pIds)*3+1):(length(pIds)*4)]
+  parameters$`other deciduous`[pIds] <- pX[(length(pIds)*4+1):(length(pIds)*5)]
+  pErr <- pX[(length(pIds)*5 +1):(length(pIds)*5 + 14)]
+
   ll <- numeric(nSites)
   ll <-mclapply(sites, function(i,ll){
     climIDi <- site_list[[i]]$climID
-    # print(i)
+    
     ll[i] <- multi_r3pg(site_list[[i]][,.(latitude,altitude,soil_class, asw_i,asw_min, asw_max, from,to)],
                         species_list[[i]][,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)],
                         climateData[climID==climIDi,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)],
-                        obsAll[Plot_ID==i],parameters)
+                        obsAll[Plot_ID==i],parameters,pErr)
   },ll=ll,mc.cores = nCores)
   loglike <- sum(unlist(ll))
   return(loglike)
