@@ -1,7 +1,7 @@
 library(r3PG)
 library(dplyr)
 library(ggplot2)
-library(multidplyr)
+# library(multidplyr)
 library(tidyr)
 library(purrr)
 library(BayesianTools)
@@ -11,16 +11,19 @@ library(parallel)
 library(readxl)
 library(tictoc)
 
-source("Rsrc/functions.r")
 load('myData/dataInputs.rdata')
 parameters <- read_excel('myData/INPUT_cal.xlsx', sheet = 'd_parameters')
 data_sizeDist <- read_excel('myData/INPUT_cal.xlsx', sheet = 'd_sizeDist')
 climateData <- data.table(read.csv('myData/monthly_weather.csv'))
+###remove 0 radiation
+climateData$srad[which(climateData$srad==0)]  <- 0.5
 
-sites <- 1:length(site_list)
+source("Rsrc/functions.r")
 
-load("NAsites.rdata")
-sites <- sites[!sites %in% NAs]
+sites <- siteData
+# 
+# load("NAsites.rdata")
+# sites <- sites[!sites %in% NAs]
 
 nSites <- length(sites)
 pErr <- rep(c(0.1,0.001),7)
@@ -32,6 +35,7 @@ iterations=3e3
 thin = 1 #100
 nChains <- 3
 
+sets <-split(siteData, ceiling(seq_along(siteData)/100))
 # ####runModel for multiple sites and report likelihood
 # ll <- numeric(nSites)
 # ll <-mclapply(sites, function(i,ll){
@@ -79,7 +83,7 @@ par$max[pY] <- par$best[pY] + 0.1
 
 prior <- createUniformPrior(lower = par$min, upper = par$max)
 ### Create Bayesian Setup
-BCmod <- createBayesianSetup(logLike, prior, best = par$best,
+BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
                              names = par$names)
 
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin)
@@ -127,3 +131,8 @@ save(calibration, file="calOut/calibration.rdata")
 # # readr::write_rds(calibration, "calibration_50000_iter_10_plots.rds")
 # # readr::write_rds(calibration, "calibration_200000_iter_10_plots.rds")
 # best_param = MAP(calibration)
+
+
+
+
+

@@ -343,7 +343,25 @@ indXspecies <- which(names(data_species) %in% c("species", "planted", "fertility
 
 setnames(obsAll,"value","obs")
 
-save(obsAll,site_list,species_list,file="myData/dataInputs.rdata")
+####filter inconsistent measurements
+siteData <- numeric()
+for(i in 1:length(species_list)){
+  layerX <- as.numeric(which(species_list[[i]]$biom_stem>0))
+  layerXobs <- as.numeric(sort(unique(obsAll[Plot_ID==i]$layer)))
+  if(identical(layerX,layerXobs)) siteData <- c(siteData,i)
+}
+# strange sites!!!!
+siteData <- siteData[-c(404, 477,858,992,1231,1710,1940)]
+
+###create lists for lApply function
+inputs <- list()
+for(i in 1:length(site_list)){
+  inputs[[i]] <- list(species=species_list[[i]],
+                      site = site_list[[i]])
+}
+
+
+save(inputs,siteData,obsAll,file="myData/dataInputs.rdata")
 
 ##filtering out the sites where the number of layers were inconsitent between the first and the second measurement
 nLayersInit <- d_species[,length(which(stems_n>0)),by=Plot_ID] ###number of layers (species) in each plot 
