@@ -79,9 +79,9 @@ multi_r3pg <- function(site, species, climate, obsData,parameters,pErr,outType="
   if(outType=="datX") return(dataX)
 }
 
-multi_r3pg_2 <- function(inputs, climate, obsData,parameters,pErr,outType="ll"){
+multi_r3pg_2 <- function(inputs, climate, obsData,parameters,pErr,
+                         pars_soilQlitter,pars_SoilInit,pErrSoil,outType="ll"){
   #' @description simulate the n runs for a given site with the drawn parameter combination
-  
   
   #' r3pg_int <- function( par_df){
   #'   #' @description function to run one site and return required output on standing biomass
@@ -103,15 +103,38 @@ multi_r3pg_2 <- function(inputs, climate, obsData,parameters,pErr,outType="ll"){
                  parameters = parameters,
                  settings= list(light_model = 2, transp_model = 2, phys_model = 2,
                                 height_model = 1, correct_bias = 0, calculate_d13c = 0),
+                 parsQlitter = pars_soilQlitter,
+                 parsQsoc = pars_SoilInit,
                  # check_input = T,
                  df_out = F)
-  
   dataX <- obsData[,.(simMonth,layerID,groupID,variableID,obs,var_name)]
   #remove NAs
   naObs <- which(is.na(as.numeric(dataX$obs)))
   if(length(naObs>1)) dataX <- dataX[-naObs]
   dataX$sims <- out[as.matrix(dataX[,1:4])]
   
+  ####Soil C (initialization and processing)
+  initSoilCx <- as.numeric(initSoil[Plot_IDi]$value)
+  obsSoilCx <- as.numeric(obsSoil[Plot_IDi]$value)
+  
+  if(!is.na(initSoilCx) & !is.na(obsSoilCx)){
+    nMonths <- dim(out)[1]
+    soilCsoil <- Q_soc_m(SOC_inputs=rep(0,nMonths),
+                         beta=as.numeric(pars_SoilInit[1,2]),
+                         eta_11=as.numeric(pars_SoilInit[2,2]),
+                         e0=as.numeric(pars_SoilInit[3,2]),
+                         fc=as.numeric(pars_SoilInit[4,2]),
+                         u0=0.113,
+                         q0=as.numeric(pars_SoilInit[6,2]),
+                         initSoil=initSoilCx)$SOCt
+    soilCtrees <- apply(out [,,9,6:9],1,sum)
+    soilC <- soilCtrees + soilCsoil
+    soilCsim <- soilCsoil[120]
+    resSoil <- soilCsim - obsSoilCx
+    ll_soil <- dnorm(resSoil,mean = pErrSoil[1],sd=pErrSoil[2],log = T)
+  }else{
+    ll_soil <- 0
+  }
   ll_stem <- calc_ll(dataX,"N",pErr[1:2])
   ll_ba <- calc_ll(dataX,"BA",pErr[3:4])
   ll_v <- calc_ll(dataX,"V",pErr[5:6])
@@ -120,47 +143,39 @@ multi_r3pg_2 <- function(inputs, climate, obsData,parameters,pErr,outType="ll"){
   ll_Wroot <- calc_ll(dataX,"Wr",pErr[11:12])
   ll_Wfol <- calc_ll(dataX,"Wf",pErr[13:14])
   
-  ll <- ll_stem + ll_ba + ll_v + ll_d + ll_Wstem + ll_Wroot + ll_Wfol
+  ll <- ll_soil + ll_stem + ll_ba + ll_v + ll_d + ll_Wstem + ll_Wroot + ll_Wfol
   if(outType=="ll") return(ll)
   if(outType=="modOut") return(out)
   if(outType=="datX") return(dataX)
 }
 
-
-###likelihood 
-# logLike <- function(pX,siteXs){
-#   
-#   # print("here")
-#   parameters$`Pinus sylvestris`[pIds] <- pX[1:length(pIds)]
-#   parameters$`Picea abies`[pIds] <- pX[(length(pIds)+1):(length(pIds)*2)]
-#   parameters$`Pinus contorta`[pIds] <- pX[(length(pIds)*2+1):(length(pIds)*3)]
-#   parameters$`Betula alba`[pIds] <- pX[(length(pIds)*3+1):(length(pIds)*4)]
-#   parameters$`other deciduous`[pIds] <- pX[(length(pIds)*4+1):(length(pIds)*5)]
-#   pErr <- pX[(length(pIds)*5 +1):(length(pIds)*5 + 14)]
-# 
-#   ll <- numeric(nSites)
-#   ll <-mclapply(siteXs, function(i,ll){
-#     climIDi <- site_list[[i]]$climID
-#     
-#     ll[i] <- multi_r3pg(site_list[[i]][,.(latitude,altitude,soil_class, asw_i,asw_min, asw_max, from,to)],
-#                         species_list[[i]][,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)],
-#                         climateData[climID==climIDi,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)],
-#                         obsAll[Plot_ID==i],parameters,pErr)
-#   },ll=ll,mc.cores = nCores)
-#   loglike <- sum(unlist(ll))
-#   return(loglike)
-# }
-# 
-# 
 ###likelihood
-logLike1 <- function(pX,siteXs){
+logLike1 <- function(siteXs,pValues){
   # print("here")
 
+  parameters$`Pinus sylvestris`[pIds] <- pValues[1:length(pIds)]
+  parameters$`Picea abies`[pIds] <- pValues[(length(pIds)+1):(length(pIds)*2)]
+  parameters$`Pinus contorta`[pIds] <- pValues[(length(pIds)*2+1):(length(pIds)*3)]
+  parameters$`Betula alba`[pIds] <- pValues[(length(pIds)*3+1):(length(pIds)*4)]
+  parameters$`other deciduous`[pIds] <- pValues[(length(pIds)*4+1):(length(pIds)*5)]
+  pErr <- pValues[(length(pIds)*5 +1):(length(pIds)*5 + 14)]
+  
+  ###soilParameters
+  ind_pSoil <- (length(pIds)*5 + length(pErr)+1):(length(pIds)*5 + length(pErr)+8)
+  soil_pars <- pValues[ind_pSoil]
+  pSoilX <- c(soil_pars[1:4],0.,soil_pars[5:6])
+  pars_soilQlitter[,2:6] <- matrix(pSoilX,nrow=28,ncol=5)
+  pars_SoilInit[,2] <- pSoilX[1:6]
+  pErrSoil <- soil_pars[7:8]
+  
   ll <- lapply(inputs[siteXs],FUN=multi_r3pg_2,
                climate=climateData,
                obsData=obsAll,
                parameters=parameters,
-               pErr=pErr
+               pErr=pErr,
+               pars_soilQlitter=pars_soilQlitter,
+               pars_SoilInit = pars_SoilInit,
+               pErrSoil = pErrSoil
          )
 
   loglike <- sum(unlist(ll))
@@ -168,15 +183,8 @@ logLike1 <- function(pX,siteXs){
 }
 
 likelihood <- function(pValues){
-  parameters$`Pinus sylvestris`[pIds] <- pValues[1:length(pIds)]
-  parameters$`Picea abies`[pIds] <- pValues[(length(pIds)+1):(length(pIds)*2)]
-  parameters$`Pinus contorta`[pIds] <- pValues[(length(pIds)*2+1):(length(pIds)*3)]
-  parameters$`Betula alba`[pIds] <- pValues[(length(pIds)*3+1):(length(pIds)*4)]
-  parameters$`other deciduous`[pIds] <- pValues[(length(pIds)*4+1):(length(pIds)*5)]
-  pErr <- pValues[(length(pIds)*5 +1):(length(pIds)*5 + 14)]
-
   logLike <- mclapply(sets, function(jx) {
-    logLike1(pValues,jx)  
+    logLike1(jx,pValues)  
   }, mc.cores = nCores)  
   llP <- sum(unlist(logLike))
   return(llP)
@@ -185,25 +193,28 @@ likelihood <- function(pValues){
 
 
 
-
-
-# 404, 477,858,992,1231,1710,1940
-# i=siteData[85]
 # 
-# climIDi <- site_list[[i]]$climID
-# site = site_list[[i]][,.(latitude,altitude,soil_class, asw_i,asw_min, asw_max, from,to)]
-# species = species_list[[i]][,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)]
-# climate = climateData[,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)]
-# obsData = obsAll[Plot_ID==i]
+# 
+# # 404, 477,858,992,1231,1710,1940
+# i=siteData[80]
+# 
+# climIDi <- inputs[[i]]$site$climID
+# Plot_IDi <- inputs[[i]]$site$Plot_ID
+# climate = climateData[climID==climIDi,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)]
+# obsData = obsAll[Plot_ID==Plot_IDi]
+# 
+# site <- inputs[[i]]$site[,.(latitude,altitude,soil_class, asw_i,asw_min, asw_max, from,to)]
+# species <- inputs[[i]]$species[,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)]
 # 
 # layerX <- as.numeric(which(species$biom_stem>0))
 # speciesX <- species[layerX,]
 # 
-# # species <- species[which(stems_n>0)]
 # out <- run_3PG(site = site, species = speciesX, climate = climate,
 #                parameters = parameters,
 #                settings= list(light_model = 2, transp_model = 2, phys_model = 2,
 #                               height_model = 1, correct_bias = 0, calculate_d13c = 0),
+#                parsQlitter = pars_soilQlitter,
+#                parsQsoc = pars_SoilInit,
 #                # check_input = T,
 #                df_out = F)
 # 
@@ -212,16 +223,40 @@ likelihood <- function(pValues){
 # naObs <- which(is.na(as.numeric(dataX$obs)))
 # if(length(naObs>1)) dataX <- dataX[-naObs]
 # dataX$sims <- out[as.matrix(dataX[,1:4])]
-# parameters
 # 
-# out[1:3,,2,3]
+# ####Soil C (initialization and processing)
+# initSoilCx <- as.numeric(initSoil[Plot_IDi]$value)
+# obsSoilCx <- as.numeric(obsSoil[Plot_IDi]$value)
 # 
-# pValues <- par$best
-# parameters$`Pinus sylvestris`[pIds] <- pValues[1:length(pIds)]
-# parameters$`Picea abies`[pIds] <- pValues[(length(pIds)+1):(length(pIds)*2)]
-# parameters$`Pinus contorta`[pIds] <- pValues[(length(pIds)*2+1):(length(pIds)*3)]
-# parameters$`Betula alba`[pIds] <- pValues[(length(pIds)*3+1):(length(pIds)*4)]
-# parameters$`other deciduous`[pIds] <- pValues[(length(pIds)*4+1):(length(pIds)*5)]
-# pErr <- pValues[(length(pIds)*5 +1):(length(pIds)*5 + 14)]
+# if(!is.na(initSoilCx) & !is.na(obsSoilCx)){
+#   nMonths <- dim(out)[1]
+#   soilCsoil <- Q_soc_m(SOC_inputs=rep(0,nMonths),
+#                        beta=as.numeric(pars_SoilInit[1,2]),
+#                        eta_11=as.numeric(pars_SoilInit[2,2]),
+#                        e0=as.numeric(pars_SoilInit[3,2]),
+#                        fc=as.numeric(pars_SoilInit[4,2]),
+#                        u0=0.113,
+#                        q0=as.numeric(pars_SoilInit[6,2]),
+#                        initSoil=initSoilCx)$SOCt
+#   soilCtrees <- apply(out [,,9,6:9],1,sum)
+#   soilC <- soilCtrees + soilCsoil
+#   soilCsim <- soilCsoil[120]
+#   resSoil <- soilCsim - obsSoilCx
+#   ll_soil <- dnorm(resSoil,mean = pErrSoil[1],sd=pErrSoil[2],log = T)
+# }else{
+#   ll_soil <- 0
+# }
 # 
-# logLike1(pValues,1:10)
+# 
+# 
+# 
+# 
+# sitesXs <- sets
+# sets <- sets[1]
+# 
+# pValues <- par$max
+# likelihood(pValues)
+# 
+# 
+# 
+# 

@@ -229,6 +229,13 @@ obsWf <- melt(selData[dataUse=="cal",.(Plot_ID,simMonth,
                                        WfPine,WfContorta,WfSpruce,WfBirch,WfDecid)],id.vars = c("Plot_ID","simMonth"))
 obsWr <- melt(selData[dataUse=="cal",.(Plot_ID,simMonth,
                                        WrPine,WrContorta,WrSpruce,WrBirch,WrDecid)],id.vars = c("Plot_ID","simMonth"))
+obsSoil <- melt(selData[dataUse=="cal",.(Plot_ID,simMonth,
+                                         CStock_toth)],id.vars = c("Plot_ID","simMonth"))
+obsSoil$value <- as.numeric(obsSoil$value) 
+
+initSoil <- melt(selData[dataUse=="init",.(Plot_ID,simMonth,
+                              CStock_toth)],id.vars = c("Plot_ID","simMonth"))
+initSoil$value <- as.numeric(initSoil$value)   
 
 obsD$value <- obsD$value * 0.1 #converts mm to cm 
 
@@ -361,7 +368,7 @@ for(i in 1:length(site_list)){
 }
 
 
-save(inputs,siteData,obsAll,file="myData/dataInputs.rdata")
+save(obsSoil,initSoil,inputs,siteData,obsAll,file="myData/dataInputs.rdata")
 
 ##filtering out the sites where the number of layers were inconsitent between the first and the second measurement
 nLayersInit <- d_species[,length(which(stems_n>0)),by=Plot_ID] ###number of layers (species) in each plot 
