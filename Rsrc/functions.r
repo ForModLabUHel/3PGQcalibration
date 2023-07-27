@@ -22,64 +22,7 @@ calc_ll <- function(dataX,varNameX,pErr){
 
 
 
-#' Title
-#'
-#' @param site 
-#' @param species 
-#' @param thinning 
-#' @param climate #weather inputs
-#' @param obsData 
-#' @param parameters 
-#' 
-#' @param outType 
-#' modOut returns model output;
-#' ll returns the log likelihood
-#' datX returns the database of observed and simulated 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-multi_r3pg <- function(site, species, climate, obsData,parameters,pErr,outType="ll"){
-  #' @description simulate the n runs for a given site with the drawn parameter combination
-  
-  
-  #' r3pg_int <- function( par_df){
-  #'   #' @description function to run one site and return required output on standing biomass
-  #'   #' @param par_df a data.frame of parameters
-  
-  # species <- species[which(stems_n>0)]
-  layerX <- as.numeric(which(species$biom_stem>0))
-  speciesX <- species[layerX,]
-  
-  out <- run_3PG(site = site, species = speciesX, climate = climate,
-                 parameters = parameters,
-                 settings= list(light_model = 2, transp_model = 2, phys_model = 2,
-                                height_model = 1, correct_bias = 0, calculate_d13c = 0),
-                 check_input = F,
-                 df_out = F)
-  
-  dataX <- obsData[,.(simMonth,layerID,groupID,variableID,obs,var_name)]
-  #remove NAs
-  naObs <- which(is.na(as.numeric(dataX$obs)))
-  if(length(naObs>1)) dataX <- dataX[-naObs]
-  dataX$sims <- out[as.matrix(dataX[,1:4])]
-  
-  ll_stem <- calc_ll(dataX,"N",pErr[1:2])
-  ll_ba <- calc_ll(dataX,"BA",pErr[3:4])
-  ll_v <- calc_ll(dataX,"V",pErr[5:6])
-  ll_d <- calc_ll(dataX,"D",pErr[7:8])
-  ll_Wstem <- calc_ll(dataX,"Ws",pErr[9:10])
-  ll_Wroot <- calc_ll(dataX,"Wr",pErr[11:12])
-  ll_Wfol <- calc_ll(dataX,"Wf",pErr[13:14])
-  
-  ll <- ll_stem + ll_ba + ll_v + ll_d + ll_Wstem + ll_Wroot + ll_Wfol
-  if(outType=="ll") return(ll)
-  if(outType=="modOut") return(out)
-  if(outType=="datX") return(dataX)
-}
-
-multi_r3pg_2 <- function(inputs, climate, obsData,parameters,pErr,
+multi_r3pg <- function(inputs, climate, obsData,parameters,pErr,
                          pars_soilQlitter,pars_SoilInit,pErrSoil,outType="ll"){
   #' @description simulate the n runs for a given site with the drawn parameter combination
   
@@ -168,7 +111,7 @@ logLike1 <- function(siteXs,pValues){
   pars_SoilInit[,2] <- pSoilX[1:6]
   pErrSoil <- soil_pars[7:8]
   
-  ll <- lapply(inputs[siteXs],FUN=multi_r3pg_2,
+  ll <- lapply(inputs[siteXs],FUN=multi_r3pg,
                climate=climateData,
                obsData=obsAll,
                parameters=parameters,
