@@ -94,8 +94,8 @@ prior <- createUniformPrior(lower = par$min, upper = par$max)
 ### Create Bayesian Setup
 BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
                              names = par$names)
-
-settings <- list(iterations = iterations, nrChains = nChains,thin=thin)
+startValue <- rbind(par$min,par$max,par$best)
+settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue)
 
 calibration <- runMCMC(BCmod, sampler="DREAMzs", settings = settings)
 

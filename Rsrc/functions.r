@@ -181,6 +181,69 @@ likelihood <- function(pValues){
 #                        u0=0.113,
 #                        q0=as.numeric(pars_SoilInit[6,2]),
 #                        initSoil=initSoilCx)$SOCt
+# #   soilCtrees <- apply(out [,,9,6:9],1,sum)
+# #   soilC <- soilCtrees + soilCsoil
+# #   soilCsim <- soilCsoil[120]
+# #   resSoil <- soilCsim - obsSoilCx
+# #   ll_soil <- dnorm(resSoil,mean = pErrSoil[1],sd=pErrSoil[2],log = T)
+# # }else{
+# #   ll_soil <- 0
+# # }
+# # 
+# # 
+# # 
+# # 
+# # 
+# # sitesXs <- sets
+# # sets <- sets[1]
+# # 
+# # pValues <- par$max
+# # likelihood(pValues)
+# # 
+# # 
+# # 
+# # 
+# i = siteData[125]
+# 
+# climIDi <- inputs[[i]]$site$climID
+# Plot_IDi <- inputs[[i]]$site$Plot_ID
+# climate = climateData[climID==climIDi,.(year,month,tmp_min,tmp_max,prcp,srad,frost_days)]
+# obsData = obsAll[Plot_ID==Plot_IDi]
+# 
+# site <- inputs[[i]]$site[,.(latitude,altitude,soil_class, asw_i,asw_min, asw_max, from,to)]
+# species <- inputs[[i]]$species[,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)]
+# 
+# layerX <- as.numeric(which(species$biom_stem>0))
+# speciesX <- species[layerX,]
+# 
+# out <- run_3PG(site = site, species = speciesX, climate = climate,
+#                parameters = parameters,
+#                settings= list(light_model = 2, transp_model = 2, phys_model = 2,
+#                               height_model = 1, correct_bias = 0, calculate_d13c = 0),
+#                parsQlitter = pars_soilQlitter,
+#                parsQsoc = pars_SoilInit,
+#                # check_input = T,
+#                df_out = F)
+# dataX <- obsData[,.(simMonth,layerID,groupID,variableID,obs,var_name)]
+# #remove NAs
+# naObs <- which(is.na(as.numeric(dataX$obs)))
+# if(length(naObs>1)) dataX <- dataX[-naObs]
+# dataX$sims <- out[as.matrix(dataX[,1:4])]
+# 
+# ####Soil C (initialization and processing)
+# initSoilCx <- as.numeric(initSoil[Plot_IDi]$value)
+# obsSoilCx <- as.numeric(obsSoil[Plot_IDi]$value)
+# 
+# if(!is.na(initSoilCx) & !is.na(obsSoilCx)){
+#   nMonths <- dim(out)[1]
+#   soilCsoil <- Q_soc_m(SOC_inputs=rep(0,nMonths),
+#                        beta=as.numeric(pars_SoilInit[1,2]),
+#                        eta_11=as.numeric(pars_SoilInit[2,2]),
+#                        e0=as.numeric(pars_SoilInit[3,2]),
+#                        fc=as.numeric(pars_SoilInit[4,2]),
+#                        u0=0.113,
+#                        q0=as.numeric(pars_SoilInit[6,2]),
+#                        initSoil=initSoilCx)$SOCt
 #   soilCtrees <- apply(out [,,9,6:9],1,sum)
 #   soilC <- soilCtrees + soilCsoil
 #   soilCsim <- soilCsoil[120]
@@ -189,17 +252,12 @@ likelihood <- function(pValues){
 # }else{
 #   ll_soil <- 0
 # }
+# ll_stem <- calc_ll(dataX,"N",pErr[1:2])
+# ll_ba <- calc_ll(dataX,"BA",pErr[3:4])
+# ll_v <- calc_ll(dataX,"V",pErr[5:6])
+# ll_d <- calc_ll(dataX,"D",pErr[7:8])
+# ll_Wstem <- calc_ll(dataX,"Ws",pErr[9:10])
+# ll_Wroot <- calc_ll(dataX,"Wr",pErr[11:12])
+# ll_Wfol <- calc_ll(dataX,"Wf",pErr[13:14])
 # 
-# 
-# 
-# 
-# 
-# sitesXs <- sets
-# sets <- sets[1]
-# 
-# pValues <- par$max
-# likelihood(pValues)
-# 
-# 
-# 
-# 
+# ll <- ll_soil + ll_stem + ll_ba + ll_v + ll_d + ll_Wstem + ll_Wroot + ll_Wfol
