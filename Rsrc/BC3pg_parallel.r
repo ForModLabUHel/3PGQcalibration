@@ -11,6 +11,7 @@ library(parallel)
 library(readxl)
 library(tictoc)
 
+###read data
 load('myData/dataInputs.rdata')
 parameters <- read_excel('myData/INPUT_cal.xlsx', sheet = 'd_parameters')
 pars_soilQlitter <- read_excel('myData/INPUT_cal.xlsx', sheet = 'd_parsQlitter')
@@ -20,7 +21,7 @@ climateData <- data.table(read.csv('myData/monthly_weather.csv'))
 ###remove 0 radiation
 climateData$srad[which(climateData$srad==0)]  <- 0.5
 
-source("Rsrc/functions.r")
+source(url('https://raw.githubusercontent.com/ForModLabUHel/3PGQcalibration/master/Rsrc/functions.r'))
 
 sites <- siteData
 # 
@@ -29,11 +30,12 @@ sites <- siteData
 
 nSites <- length(sites)
 pErr <- rep(c(0.1,0.001),7)
-nCores = 1
 # climate <- climate[1:1000,]
 
 ## calibration settings
-iterations=3e3
+if(!exists("iterations")) iterations=3e3
+if(!exists("nCores")) nCores = 1
+
 thin = 1 #100
 nChains <- 3
 
