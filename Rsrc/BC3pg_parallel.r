@@ -33,6 +33,7 @@ pErr <- rep(c(0.1,0.001),7)
 # climate <- climate[1:1000,]
 
 ## calibration settings
+if(!exists("calN")) calN <- 0
 if(!exists("iterations")) iterations=3e3
 if(!exists("nCores")) nCores = 1
 
@@ -102,48 +103,7 @@ settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValu
 
 calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
 
-save(calibration, file="calOut/calibration.rdata")
-
-
-
-
-# nCores = 5 #30
-# cl <- parallel::makeCluster(nCores)
-# pLikelihood <- function(param) parallel::parApply(cl = cl, X = param, MARGIN = 1, FUN = logLike)
-# parallel::clusterExport(cl, varlist = ls())#c('parameters', 'par',
-#                                         # 'pIds', 'multi_r3pg', 'site_list',
-#                                         # "species_list","climateData","obsAll",
-#                                         # 'run_3PG',# 'settings_3pg', #'n3PGpars', 
-#                                         # "calc_ll", "Sivia_log", 'nSites', 'sites'))
-# 
-# prior <- createUniformPrior(lower = par$min, upper = par$max)
-# ### Create Bayesian Setup
-# BCmod <- createBayesianSetup(pLikelihood, prior, best = par$best, 
-#                              names = par$names, 
-#                              parallel = "external")
-# iterations=100
-# settings <- list(iterations = iterations, nrChains = nChains, thin=thin)
-# 
-# # https://bookdown.org/rdpeng/rprogdatascience/parallel-computation.html
-# # rm(i)
-# # calibration <- runMCMC(BCmod, sampler="DREAMzs", settings = settings)
-# tictoc::tic(); set.seed(1234); calibration <- runMCMC(BCmod, sampler="DREAMzs", settings = settings); t = tictoc::toc()
-# stopCluster(cl)
-# 
-# x = getSample(calibration, coda = F, parametersOnly = F) %>% data.frame()
-# dim(x)
-# 
-# x %>% 
-#   pivot_longer(everything()) %>% 
-#   ggplot(aes(x = value)) +
-#   geom_density() +
-#   facet_wrap(~name, scales = "free") +
-#   theme_bw()
-# 
-# # readr::write_rds(calibration, "calibration_50000_iter_10_plots.rds")
-# # readr::write_rds(calibration, "calibration_200000_iter_10_plots.rds")
-# best_param = MAP(calibration)
-
+save(calibration, file=paste0("calOut/calibration_",calN,".rdata"))
 
 
 
