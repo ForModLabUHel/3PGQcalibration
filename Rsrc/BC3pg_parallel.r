@@ -92,8 +92,6 @@ par$max[pY] <- par$best[pY] + 0.1
 par$min[121] <- -10
 par$max[121] <- 10
 
-print(iterations)
-
 prior <- createUniformPrior(lower = par$best, upper = par$max)
 ### Create Bayesian Setup
 BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
@@ -102,10 +100,8 @@ startValue <- rbind(par$min,par$max,par$best)
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
                  message=F)
 
-print(settings$iterations)
-calibration <- runMCMC(BCmod, sampler="DREAMzs", settings = settings)
+calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
 
-print(settings$iterations)
 save(calibration, file="calOut/calibration.rdata")
 
 
