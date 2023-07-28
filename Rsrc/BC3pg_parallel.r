@@ -100,8 +100,10 @@ startValue <- rbind(par$min,par$max,par$best)
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
                  message=F)
 
+print(settings$iterations)
 calibration <- runMCMC(BCmod, sampler="DREAMzs", settings = settings)
 
+print(settings$iterations)
 save(calibration, file="calOut/calibration.rdata")
 
 
