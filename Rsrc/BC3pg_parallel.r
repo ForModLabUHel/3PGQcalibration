@@ -92,6 +92,8 @@ par$max[pY] <- par$best[pY] + 0.1
 par$min[121] <- -10
 par$max[121] <- 10
 
+print(iterations)
+
 prior <- createUniformPrior(lower = par$min, upper = par$max)
 ### Create Bayesian Setup
 BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
