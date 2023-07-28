@@ -99,7 +99,7 @@ BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
                              names = par$names)
 startValue <- rbind(par$min,par$max,par$best)
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
-                 message=F)
+                 message=T)
 
 calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
 
