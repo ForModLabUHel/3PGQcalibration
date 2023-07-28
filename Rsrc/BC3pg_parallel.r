@@ -94,7 +94,7 @@ par$max[121] <- 10
 
 print(iterations)
 
-prior <- createUniformPrior(lower = par$min, upper = par$max)
+prior <- createUniformPrior(lower = par$best, upper = par$max)
 ### Create Bayesian Setup
 BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
                              names = par$names)
