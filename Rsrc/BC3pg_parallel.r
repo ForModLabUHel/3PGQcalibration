@@ -91,7 +91,7 @@ if(!exists("startValue")) startValue <- rbind(runif(length(par$best),par$min,par
                                               par$best)
 
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
-                 message=FALSE)
+                 message=FALSE,consoleUpdates=1000)
 
 tic(paste0("calibration time."," iteratios: ",iterations))
  calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
