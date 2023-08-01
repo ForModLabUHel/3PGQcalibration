@@ -23,6 +23,13 @@ climateData$srad[which(climateData$srad==0)]  <- 0.5
 
 source(url('https://raw.githubusercontent.com/ForModLabUHel/3PGQcalibration/master/Rsrc/functions.r'))
 
+if(exists("initFile")){
+  load(paste0("calOut/",initFile))
+  startValue <- rbind(MAP(calibration[[1]])$parametersMAP,
+                      MAP(calibration[[2]])$parametersMAP,
+                      MAP(calibration[[3]])$parametersMAP)
+}
+
 sites <- siteData
 # 
 # load("NAsites.rdata")
@@ -93,16 +100,18 @@ par$max[pY] <- par$best[pY] + 0.1
 par$min[121] <- -10
 par$max[121] <- 10
 
-prior <- createUniformPrior(lower = par$best, upper = par$max)
+prior <- createUniformPrior(lower = par$min, upper = par$max)
 ### Create Bayesian Setup
 BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
                              names = par$names)
-startValue <- rbind(par$min,par$max,par$best)
+
+if(!exists("startValue")) startValue <- rbind(par$min,par$max,par$best)
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
-                 message=F)
+                 message=FALSE)
 
-calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
-
+tic(paste0("calibration time."," iteratios: ",iterations))
+ calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
+toc()
 save(calibration, file=paste0("calOut/calibration_",calN,".rdata"))
 
 
