@@ -48,25 +48,6 @@ thin = 1 #100
 nChains <- 3
 
 sets <-split(siteData, ceiling(seq_along(siteData)/100))
-# ####runModel for multiple sites and report likelihood
-# ll <- numeric(nSites)
-# ll <-mclapply(sites, function(i,ll){
-#   print(i)
-#   ll[i] <- multi_r3pg(allInputs$site[[i]],allInputs$species[[i]],
-#                      allInputs$thinning[[i]],allInputs$climate[[i]],
-#                      allInputs$obsData[[i]],parameters)
-# },ll=ll,mc.cores = nCores)
-# 
-# 
-# ####runModel for multiple sites and return a list of databases for each site with the simulated ond observed data
-# datX <- list()
-# datX <-mclapply(sites, function(i,datX){
-#   print(i)
-#   datX[[i]] <- multi_r3pg(allInputs$site[[i]],allInputs$species[[i]],
-#                       allInputs$thinning[[i]],allInputs$climate[[i]],
-#                       allInputs$obsData[[i]],parameters,outType="datX")
-# },datX=datX,mc.cores = nCores)
-# 
 
 ###soilParamters
 pSoil <- c(7,0.36,0.25,0.5,1.1,0.3) #"beta", "eta", "e0", "fc", "q0", "z
@@ -112,6 +93,7 @@ settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValu
 tic(paste0("calibration time."," iteratios: ",iterations))
  calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
 toc()
+
 save(calibration, file=paste0("calOut/calibration_",calN,".rdata"))
 
 
