@@ -86,7 +86,10 @@ prior <- createUniformPrior(lower = par$min, upper = par$max)
 BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
                              names = par$names)
 
-if(!exists("startValue")) startValue <- rbind(par$min,par$max,par$best)
+if(!exists("startValue")) startValue <- rbind(runif(length(par$best),par$min,par$max),
+                                              runif(length(par$best),par$min,par$max),
+                                              par$best)
+
 settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
                  message=FALSE)
 
