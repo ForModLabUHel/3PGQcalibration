@@ -81,24 +81,24 @@ par$max[pY] <- par$best[pY] + 0.1
 par$min[121] <- -10
 par$max[121] <- 10
 
-prior <- createUniformPrior(lower = par$min, upper = par$max)
-### Create Bayesian Setup
-BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
-                             names = par$names)
-
-if(!exists("startValue")) startValue <- rbind(runif(length(par$best),par$min,par$max),
-                                              runif(length(par$best),par$min,par$max),
-                                              par$best)
-
-settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
-                 message=FALSE,consoleUpdates=1000)
-
-tic(paste0("calibration time."," iteratios: ",iterations))
- calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
-toc()
-
-save(calibration, file=paste0("calOut/calibration_",calN,".rdata"))
-
-
-
-
+if(!exists("startValue")){
+  prior <- createUniformPrior(lower = par$min, upper = par$max)
+  ### Create Bayesian Setup
+  BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
+                               names = par$names)
+  
+  startValue <- rbind(runif(length(par$best),par$min,par$max),
+                      runif(length(par$best),par$min,par$max),
+                      par$best)
+  
+  settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
+                   message=FALSE,consoleUpdates=1000)
+  
+  tic(paste0("calibration time."," iteratios: ",iterations))
+  calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
+  toc()
+}else{
+  tic(paste0("calibration time."," iteratios: ",iterations))
+  calibration2 = runMCMC(calibration)
+  toc()
+}
