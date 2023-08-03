@@ -101,6 +101,6 @@ if(!exists("startValue")){
   toc()
 }else{
   tic(paste0("calibration time."," iteratios: ",iterations))
-  calibration2 = runMCMC(calibration)
+  calibration = runMCMC(calibration)
   toc()
 }
