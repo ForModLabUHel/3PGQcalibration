@@ -43,8 +43,8 @@ pErr <- rep(c(0.1,0.001),7)
 if(!exists("calN")) calN <- 0
 if(!exists("iterations")) iterations=3e3
 if(!exists("nCores")) nCores = 1
+if(!exists("thin")) thin = 100
 
-thin = 1 #100
 nChains <- 3
 
 sets <-split(siteData, ceiling(seq_along(siteData)/100))
