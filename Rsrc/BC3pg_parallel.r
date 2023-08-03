@@ -44,8 +44,10 @@ if(!exists("calN")) calN <- 0
 if(!exists("iterations")) iterations=3e3
 if(!exists("nCores")) nCores = 1
 if(!exists("thin")) thin = 100
+if(!exists("nChains")) nChains <- 3
 
-nChains <- 3
+print(thin)
+print(iterations)
 
 sets <-split(siteData, ceiling(seq_along(siteData)/100))
 
