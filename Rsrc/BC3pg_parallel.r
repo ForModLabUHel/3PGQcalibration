@@ -96,7 +96,7 @@ if(!exists("startValue")){
   settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
                    message=FALSE,consoleUpdates=1000)
   
-  tic(paste0("calibration time."," iteratios: ",iterations))
+  tic<(paste0("calibration time."," iteratios: ",iterations))
   calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
   toc()
 }else{
@@ -104,3 +104,5 @@ if(!exists("startValue")){
   calibration = runMCMC(calibration)
   toc()
 }
+
+save(calibration, file=paste0("calOut/calibration_",calN,".rdata"))
