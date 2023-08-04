@@ -100,6 +100,10 @@ if(!exists("startValue")){
   calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
   toc()
 }else{
+  if(exists("fx")){
+    calibration[[1]]$settings$f <- calibration[[2]]$settings$f <- 
+      calibration[[3]]$settings$f <- fx
+  } 
   tic(paste0("calibration time."," iteratios: ",iterations))
   calibration = runMCMC(calibration)
   toc()
