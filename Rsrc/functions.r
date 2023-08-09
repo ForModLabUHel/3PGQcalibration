@@ -99,12 +99,12 @@ logLike1 <- function(siteXs,pValues){
   parameters$`Pinus sylvestris`[pIds] <- pValues[1:length(pIds)]
   parameters$`Picea abies`[pIds] <- pValues[(length(pIds)+1):(length(pIds)*2)]
   parameters$`Pinus contorta`[pIds] <- pValues[(length(pIds)*2+1):(length(pIds)*3)]
-  parameters$`Betula alba`[pIds] <- pValues[(length(pIds)*3+1):(length(pIds)*4)]
-  parameters$`other deciduous`[pIds] <- pValues[(length(pIds)*4+1):(length(pIds)*5)]
-  pErr <- pValues[(length(pIds)*5 +1):(length(pIds)*5 + 14)]
+  parameters$`Betula alba`[pIds[-noDecid_par]] <- pValues[(length(pIds)*3+1):(length(pIds)*4-1)]
+  parameters$`other deciduous`[pIds[-noDecid_par]] <- pValues[(length(pIds)*4+1-1):(length(pIds)*5-2)]
+  pErr <- pValues[(length(pIds)*5 +1-2):(length(pIds)*5 + 14-2)]
   
   ###soilParameters
-  ind_pSoil <- (length(pIds)*5 + length(pErr)+1):(length(pIds)*5 + length(pErr)+8)
+  ind_pSoil <- (length(pIds)*5-2 + length(pErr)+1):(length(pIds)*5-2 + length(pErr)+8)
   soil_pars <- pValues[ind_pSoil]
   pSoilX <- c(soil_pars[1:4],0.,soil_pars[5:6])
   pars_soilQlitter[,2:6] <- matrix(pSoilX,nrow=28,ncol=5)
