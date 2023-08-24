@@ -65,7 +65,9 @@ for(i in 1:indRun){
 }
 
 save(pChain, file="calOut/allChain.rdata")
-save(pMAP,file="calOut/pMAP.rdata")
+pChainSample <- getSample(pChain,numSamples = 1000)
+save(pChainSample,pMAP,file="calOut/pMAP.rdata")
+
 
 pdf("calOut/tracePlots_0to3.pdf")
 tracePlot(pChain)
