@@ -31,6 +31,11 @@ if(exists("initFile")){
                       MAP(calibration[[3]])$parametersMAP)
 }
 
+####select sites forcalibration
+nCalSites <-  floor(length(siteData)*2/3)
+set.seed(1234)
+calSites <- sort(sample(siteData,nCalSites))
+valSites <- siteData[!siteData %in% calSites]
 sites <- siteData
 # 
 # load("NAsites.rdata")
@@ -50,7 +55,7 @@ if(!exists("nChains")) nChains <- 3
 print(thin)
 print(iterations)
 
-sets <-split(siteData, ceiling(seq_along(siteData)/100))
+sets <-split(sites, ceiling(seq_along(sites)/(nSites/21)))
 
 ###soilParamters
 pSoil <- c(7,0.36,0.25,0.5,1.1,0.3) #"beta", "eta", "e0", "fc", "q0", "z
