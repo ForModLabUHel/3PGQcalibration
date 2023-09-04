@@ -36,7 +36,7 @@ nCalSites <-  floor(length(siteData)*2/3)
 set.seed(1234)
 calSites <- sort(sample(siteData,nCalSites))
 valSites <- siteData[!siteData %in% calSites]
-sites <- siteData
+sites <- calSites
 # 
 # load("NAsites.rdata")
 # sites <- sites[!sites %in% NAs]

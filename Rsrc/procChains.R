@@ -4,11 +4,12 @@ library("runjags")
 library("coda")
 
 setwd("/scratch/project_2000994/calibrations/3PGQcalibration")
+#setwd("C:/Users/minunno/Documents/yucatrote/SLU")
 
-load("calOut/calibration_0.1.rdata")
-namesX <- colnames(calibration[[1]]$chain[[1]])
+load("calOut/calibration_1.1.rdata")
+namesX <- c(calibration[[1]]$setup$names,"lp","ll","pr")
 
-calSets <- 5:6
+calSets <- 1
 ###settings
 npar <- calibration[[1]]$setup$numPars
 indRun <-9 #number of independent calibration runs

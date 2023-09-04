@@ -29,7 +29,7 @@ par <- fread('myData/parameters.csv')
 npars <- length(par$best)
 pMAP <- pMAP[1:npars]
 source(url('https://raw.githubusercontent.com/ForModLabUHel/3PGQcalibration/master/Rsrc/functions.r'))
-
+#source("Rsrc/functions.r")
 # if(exists("initFile")){
 #   load(paste0("calOut/",initFile))
 #   startValue <- rbind(MAP(calibration[[1]])$parametersMAP,
@@ -37,7 +37,13 @@ source(url('https://raw.githubusercontent.com/ForModLabUHel/3PGQcalibration/mast
 #                       MAP(calibration[[3]])$parametersMAP)
 # }
 
-sites <- siteData
+####select sites forcalibration
+nCalSites <-  floor(length(siteData)*2/3)
+set.seed(1234)
+calSites <- sort(sample(siteData,nCalSites))
+valSites <- siteData[!siteData %in% calSites]
+sites <- valSites
+
 # 
 # load("NAsites.rdata")
 # sites <- sites[!sites %in% NAs]
@@ -93,9 +99,10 @@ for(i in vars){
     ggtitle(i)
 }
 
-pdf("resultsCal.pdf")
-grid.arrange(grobs = c(plotListOr, plotListMAP), ncol = 2, as.table = FALSE)
+pdf("resCal/resultsCal.pdf")
+  grid.arrange(grobs = c(plotListOr, plotListMAP), ncol = 2, as.table = FALSE)
 dev.off()
+
 
 rmseTab <- matrix(NA, length(vars),2)
 for(i in 1:length(vars)){
@@ -104,3 +111,5 @@ for(i in 1:length(vars)){
 }
 colnames(rmseTab) <- c("original","calibrated")
 rownames(rmseTab) <- vars
+
+write.csv(rmseTab,file="resCal/rmse.csv")
