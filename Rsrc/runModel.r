@@ -42,7 +42,7 @@ nCalSites <-  floor(length(siteData)*2/3)
 set.seed(1234)
 calSites <- sort(sample(siteData,nCalSites))
 valSites <- siteData[!siteData %in% calSites]
-sites <- valSites
+sites <- valSites #calSites
 
 # 
 # load("NAsites.rdata")
@@ -73,7 +73,7 @@ nSites <- length(sites)
 pIds <- c(1:7,10,13:15,31:32,39,41,44,47,49)
 noDecid_par <- 7
 
-dataOr <- runModelOut(par$best,sites)
+#dataOr <- runModelOut(par$best,sites)
 dataMAP <- runModelOut(pMAP,sites)
 
 for(i in 1:length(dataMAP)) dataMAP[[i]]$siteID <- sites[i]
