@@ -76,6 +76,18 @@ multi_r3pg <- function(inputs, climate, obsData,parameters,pErr,
     soilCsim <- soilCsoil[120]
     resSoil <- soilCsim - obsSoilCx
     ll_soil <- dnorm(resSoil,mean = pErrSoil[1],sd=pErrSoil[2],log = T)
+    if(outType=="datX"){
+      dataSoil <- data.table(
+        simMonth=120,
+        layerID=NA,
+        groupID=NA,
+        variableID=90,
+        obs = obsSoilCx,
+        var_name ="soilC",
+        sims = soilCsim
+      )
+      dataX <- rbind(dataX,dataSoil)    
+    }
   }else{
     ll_soil <- 0
   }

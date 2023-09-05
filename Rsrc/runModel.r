@@ -86,21 +86,37 @@ dataMAP$sims <- as.numeric(dataMAP$sims)
 dataMAP$obs <- as.numeric(dataMAP$obs)
 
 
+###add species
+dataMAP$species <- dataOr$species <- "some"
+for(i in sites){
+  species <- inputs[[i]]$species[,.(species, planted, fertility, stems_n, biom_stem, biom_root, biom_foliage)]
+  layerX <- as.numeric(which(species$biom_stem>0))
+  speciesX <- species[layerX,]
+  nLayers <- nrow(speciesX)
+  
+  for(ijx in 1:nLayers){
+    dataMAP[siteID==i & layerID==ijx]$species <- speciesX[ijx]$species
+    dataOr[siteID==i & layerID==ijx]$species <- speciesX[ijx]$species
+  }
+}
+
+
 vars <- unique(dataMAP$var_name)
 vars <- vars[-4]
 plotListMAP <- plotListOr <- list()
 for(i in vars){
-  plotListMAP[[i]] <-  ggplot(data=dataMAP[var_name==i], aes(x=sims, y=obs)) +
+  plotListMAP[[i]] <-  ggplot(data=dataMAP[var_name==i], aes(x=sims, y=obs,col=species)) +
     geom_point() + geom_abline(slope=1,intercept=0)+
     ggtitle(i)
   
-  plotListOr[[i]] <- ggplot(data=dataOr[var_name==i], aes(x=sims, y=obs)) +
+  plotListOr[[i]] <- ggplot(data=dataOr[var_name==i], aes(x=sims, y=obs,col=species)) +
     geom_point() + geom_abline(slope=1,intercept=0) +
     ggtitle(i)
 }
 
 pdf("resCal/resultsCal.pdf")
-  grid.arrange(grobs = c(plotListOr, plotListMAP), ncol = 2, as.table = FALSE)
+  grid.arrange(grobs = c(plotListOr[1:4], plotListMAP[1:4]), ncol = 2, as.table = FALSE)
+  grid.arrange(grobs = c(plotListOr[5:7], plotListMAP[5:7]), ncol = 2, as.table = FALSE)
 dev.off()
 
 
