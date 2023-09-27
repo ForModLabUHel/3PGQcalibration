@@ -98,9 +98,9 @@ if(!exists("startValue")){
   
   startValue <- rbind(runif(length(par$best),par$min,par$max),
                       runif(length(par$best),par$min,par$max),
-                      par$best)
+                      pMAP[1:110])
   
-  settings <- list(iterations = iterations, nrChains = nChains,thin=thin,startValue=startValue,
+  settings <- list(iterations = iterations,thin=thin,startValue=startValue,
                    message=FALSE,consoleUpdates=1000)
   
   tic(paste0("calibration time."," iteratios: ",iterations))
@@ -108,8 +108,7 @@ if(!exists("startValue")){
   toc()
 }else{
   if(exists("fx")){
-    calibration[[1]]$settings$f <- calibration[[2]]$settings$f <- 
-      calibration[[3]]$settings$f <- fx
+    calibration$settings$f <- fx
   } 
   tic(paste0("calibration time."," iteratios: ",iterations))
   calibration = runMCMC(calibration)

@@ -6,10 +6,11 @@ library("coda")
 setwd("/scratch/project_2000994/calibrations/3PGQcalibration")
 #setwd("C:/Users/minunno/Documents/yucatrote/SLU")
 
-load("calOut/calibration_1.1.rdata")
+calSets <- 8:15
+
+load(paste0("calOut/calibration_",calSets[1],".1.rdata"))
 namesX <- c(calibration[[1]]$setup$names,"lp","ll","pr")
 
-calSets <- 1
 ###settings
 npar <- calibration[[1]]$setup$numPars
 indRun <-9 #number of independent calibration runs
@@ -63,6 +64,7 @@ for(i in 1:indRun){
   }else{
     if(pMAPx[LPind] > pMAP[LPind]) pMAP <- pMAPx  
   }
+print(i)
 }
 
 save(pChain, file="calOut/allChain.rdata")
@@ -70,7 +72,8 @@ pChainSample <- getSample(pChain,numSamples = 1000)
 save(pChainSample,pMAP,file="calOut/pMAP.rdata")
 
 
-pdf("calOut/tracePlots_0to3.pdf")
+# pdf(paste0("calOut/tracePlots_",min(calSets),"to",max(calSets),".pdf"))
+pdf("calOut/tracePlots.pdf")
 tracePlot(pChain)
 dev.off()
 
