@@ -106,6 +106,7 @@ if(!exists("startValue")){
   calibration <- runMCMC(BCmod, sampler="DEzs", settings = settings)
   toc()
 }else{
+  if(exists("iterations")) calibration$settings$iterations <- iterations 
   if(exists("fx")){
     calibration$settings$f <- fx
   } 
