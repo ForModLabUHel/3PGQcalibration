@@ -26,9 +26,8 @@ source(url('https://raw.githubusercontent.com/ForModLabUHel/3PGQcalibration/mast
 
 if(exists("initFile")){
   load(paste0("calOut/",initFile))
-  startValue <- rbind(MAP(calibration[[1]])$parametersMAP,
-                      MAP(calibration[[2]])$parametersMAP,
-                      MAP(calibration[[3]])$parametersMAP)
+  startValue <- calibration$X
+  startValue[2,] <- MAP(calibration)$parametersMAP
 }
 
 ####select sites forcalibration
@@ -98,7 +97,7 @@ if(!exists("startValue")){
   
   startValue <- rbind(runif(length(par$best),par$min,par$max),
                       runif(length(par$best),par$min,par$max),
-                      pMAP[1:110])
+                      par$best)
   
   settings <- list(iterations = iterations,thin=thin,startValue=startValue,
                    message=FALSE,consoleUpdates=1000)
