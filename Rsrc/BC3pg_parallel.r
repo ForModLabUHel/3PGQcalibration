@@ -21,6 +21,7 @@ climateData <- data.table(read.csv('myData/monthly_weather.csv'))
 ###remove 0 radiation
 climateData$srad[which(climateData$srad==0)]  <- 0.5
 par <- fread('myData/parameters.csv')
+load("calOut/pMAP.rdata") 
 
 source(url('https://raw.githubusercontent.com/ForModLabUHel/3PGQcalibration/master/Rsrc/functions.r'))
 
@@ -97,7 +98,7 @@ if(!exists("startValue")){
   
   startValue <- rbind(runif(length(par$best),par$min,par$max),
                       runif(length(par$best),par$min,par$max),
-                      par$best)
+                      pMAP[1:length(par$best)])
   
   settings <- list(iterations = iterations,thin=thin,startValue=startValue,
                    message=FALSE,consoleUpdates=1000)
