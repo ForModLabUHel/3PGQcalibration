@@ -6,13 +6,13 @@ library("coda")
 setwd("/scratch/project_2000994/calibrations/3PGQcalibration")
 #setwd("C:/Users/minunno/Documents/yucatrote/SLU")
 
-calSets <- 8:15
+calSets <- 1:3
 
 load(paste0("calOut/calibration_",calSets[1],".1.rdata"))
-namesX <- c(calibration[[1]]$setup$names,"lp","ll","pr")
+namesX <- c(calibration$setup$names,"lp","ll","pr")
 
 ###settings
-npar <- calibration[[1]]$setup$numPars
+npar <- calibration$setup$numPars
 indRun <-9 #number of independent calibration runs
 thin=1
 pChain <- mcmc.list()
@@ -21,34 +21,19 @@ pMAP <- NULL
 for(i in 1:indRun){
   for(ij in calSets){
     load(paste0("calOut/calibration_",ij,".",i,".rdata"))
-    lChain <- dim(calibration[[1]]$chain[[1]])[1]
+    lChain <- dim(calibration$chain[[1]])[1]
     seqX <- seq(thin,lChain,by=thin)
     if(ij==calSets[1]){
-      chain1 <- rbind(calibration[[1]]$chain[[1]][seqX,],
-                      calibration[[1]]$chain[[2]][seqX,],
-                      calibration[[1]]$chain[[3]][seqX,])
+      chain1 <- calibration$chain[[1]][seqX,]
       colnames(chain1) <- namesX
-      chain2 <- rbind(calibration[[2]]$chain[[1]][seqX,],
-                      calibration[[2]]$chain[[2]][seqX,],
-                      calibration[[2]]$chain[[3]][seqX,])
+      chain2 <- calibration$chain[[2]][seqX,]
       colnames(chain2) <- namesX
-      chain3 <- rbind(calibration[[3]]$chain[[1]][seqX,],
-                      calibration[[3]]$chain[[2]][seqX,],
-                      calibration[[3]]$chain[[3]][seqX,])
+      chain3 <- calibration$chain[[3]]
       colnames(chain3) <- namesX
     }else{
-      chain1 <- rbind(chain1,
-                      calibration[[1]]$chain[[1]][seqX,],
-                      calibration[[1]]$chain[[2]][seqX,],
-                      calibration[[1]]$chain[[3]][seqX,])
-      chain2 <- rbind(chain2,
-                      calibration[[2]]$chain[[1]][seqX,],
-                      calibration[[2]]$chain[[2]][seqX,],
-                      calibration[[2]]$chain[[3]][seqX,])
-      chain3 <- rbind(chain3,
-                      calibration[[3]]$chain[[1]][seqX,],
-                      calibration[[3]]$chain[[2]][seqX,],
-                      calibration[[3]]$chain[[3]][seqX,])
+      chain1 <- rbind(chain1,calibration$chain[[1]][seqX,])
+      chain2 <- rbind(chain2,calibration$chain[[2]][seqX,])
+      chain3 <- rbind(chain3,calibration$chain[[3]][seqX,])
     }
   }
   #create a list of 3 chains. Note those 3 chains are the 3 parallel chains that are used in the DE (differential evolution algorithms)
@@ -64,7 +49,7 @@ for(i in 1:indRun){
   }else{
     if(pMAPx[LPind] > pMAP[LPind]) pMAP <- pMAPx  
   }
-print(i)
+  print(i)
 }
 
 save(pChain, file="calOut/allChain.rdata")
