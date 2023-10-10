@@ -6,7 +6,7 @@ library("coda")
 setwd("/scratch/project_2000994/calibrations/3PGQcalibration")
 #setwd("C:/Users/minunno/Documents/yucatrote/SLU")
 
-calSets <- 1:10
+calSets <- 5:10
 
 load(paste0("calOut/calibration_",calSets[1],".1.rdata"))
 namesX <- c(calibration$setup$names,"lp","ll","pr")
@@ -24,16 +24,16 @@ for(i in 1:indRun){
     lChain <- dim(calibration$chain[[1]])[1]
     seqX <- seq(thin,lChain,by=thin)
     if(ij==calSets[1]){
-      chain1 <- calibration$chain[[1]][seqX,]
+      chain1 <- calibration$chain[[1]]
       colnames(chain1) <- namesX
-      chain2 <- calibration$chain[[2]][seqX,]
+      chain2 <- calibration$chain[[2]]
       colnames(chain2) <- namesX
-      chain3 <- calibration$chain[[3]][seqX,]
+      chain3 <- calibration$chain[[3]]
       colnames(chain3) <- namesX
     }else{
-      chain1 <- rbind(chain1,calibration$chain[[1]][seqX,])
-      chain2 <- rbind(chain2,calibration$chain[[2]][seqX,])
-      chain3 <- rbind(chain3,calibration$chain[[3]][seqX,])
+      chain1 <- rbind(chain1,calibration$chain[[1]])
+      chain2 <- rbind(chain2,calibration$chain[[2]])
+      chain3 <- rbind(chain3,calibration$chain[[3]])
     }
   }
   #create a list of 3 chains. Note those 3 chains are the 3 parallel chains that are used in the DE (differential evolution algorithms)
