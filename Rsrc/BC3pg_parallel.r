@@ -37,6 +37,7 @@ set.seed(1234)
 calSites <- sort(sample(siteData,nCalSites))
 valSites <- siteData[!siteData %in% calSites]
 sites <- calSites
+set.seed(NULL)
 # 
 # load("NAsites.rdata")
 # sites <- sites[!sites %in% NAs]
@@ -90,7 +91,7 @@ noDecid_par <- 7
 # par$min[121] <- -10
 # par$max[121] <- 10
 
-if(!exists("startValue")){
+if(calN<1){
   prior <- createUniformPrior(lower = par$min, upper = par$max)
   ### Create Bayesian Setup
   BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
