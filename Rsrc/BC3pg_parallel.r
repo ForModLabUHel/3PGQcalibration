@@ -49,10 +49,10 @@ pErr <- rep(c(0.1,0.001),7)
 if(!exists("calN")) calN <- 0
 if(!exists("iterations")) iterations=3e3
 if(!exists("nCores")) nCores = 1
-if(!exists("thin")) thin = 100
+# if(!exists("thin")) thin = 100
 if(!exists("nChains")) nChains <- 3
 
-print(thin)
+# print(thin)
 print(iterations)
 
 sets <-split(sites, ceiling(seq_along(sites)/(nSites/21)))
@@ -100,7 +100,7 @@ if(!exists("startValue")){
                       runif(length(par$best),par$min,par$max),
                       pMAP[1:length(par$best)])
   
-  settings <- list(iterations = iterations,thin=thin,startValue=startValue,
+  settings <- list(iterations = iterations,startValue=startValue,
                    message=FALSE,consoleUpdates=1000)
   
   tic(paste0("calibration time."," iteratios: ",iterations))

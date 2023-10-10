@@ -6,7 +6,7 @@ library("coda")
 setwd("/scratch/project_2000994/calibrations/3PGQcalibration")
 #setwd("C:/Users/minunno/Documents/yucatrote/SLU")
 
-calSets <- 1:3
+calSets <- 1:10
 
 load(paste0("calOut/calibration_",calSets[1],".1.rdata"))
 namesX <- c(calibration$setup$names,"lp","ll","pr")
@@ -28,7 +28,7 @@ for(i in 1:indRun){
       colnames(chain1) <- namesX
       chain2 <- calibration$chain[[2]][seqX,]
       colnames(chain2) <- namesX
-      chain3 <- calibration$chain[[3]]
+      chain3 <- calibration$chain[[3]][seqX,]
       colnames(chain3) <- namesX
     }else{
       chain1 <- rbind(chain1,calibration$chain[[1]][seqX,])
@@ -81,6 +81,7 @@ pChainComb[[3]] <- combine.mcmc(xx)
 
 
 gelman.diag(pChainComb,multivariate = T,autoburnin = F)
+# gelman.diag(pChain,multivariate = T,autoburnin = F)
 
 ###filter the chains
 ###find out the chains that got stuck in local maxima looking at the loglikelihood
