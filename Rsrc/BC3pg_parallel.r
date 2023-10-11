@@ -91,7 +91,7 @@ noDecid_par <- 7
 # par$min[121] <- -10
 # par$max[121] <- 10
 
-if(calN<1){
+if(calN<0.99){
   prior <- createUniformPrior(lower = par$min, upper = par$max)
   ### Create Bayesian Setup
   BCmod <- createBayesianSetup(likelihood, prior, best = par$best,
