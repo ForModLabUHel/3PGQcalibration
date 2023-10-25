@@ -73,7 +73,7 @@ nSites <- length(sites)
 pIds <- c(1:7,10,13:15,31:32,39,41,44,47,49)
 noDecid_par <- 7
 
-#dataOr <- runModelOut(par$best,sites)
+dataOr <- runModelOut(par$best,sites)
 dataMAP <- runModelOut(pMAP,sites)
 
 for(i in 1:length(dataMAP)) dataMAP[[i]]$siteID <- sites[i]
@@ -129,3 +129,14 @@ colnames(rmseTab) <- c("original","calibrated")
 rownames(rmseTab) <- vars
 
 write.csv(rmseTab,file="resCal/rmse.csv")
+
+
+for(i in 1:7){
+  png(file=paste0("resCal/plots/",vars[i],"_pDef.png"))
+    print(plotListOr[i])
+  dev.off()
+
+  png(file=paste0("resCal/plots/",vars[i],"_pCal.png"))
+    print(plotListMAP[i])
+  dev.off()
+}
